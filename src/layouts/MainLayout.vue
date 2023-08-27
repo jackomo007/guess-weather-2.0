@@ -11,9 +11,7 @@
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title> Quasar App </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
+        <q-toolbar-title> Guess Weather </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -48,21 +46,21 @@ const linksList = [
   },
   {
     title: 'Github',
-    caption: 'github.com/quasarframework',
+    caption: 'jackomo007',
     icon: 'code',
-    link: 'https://github.com/quasarframework',
+    link: 'https://github.com/jackomo007',
   },
   {
     title: 'Twitter',
-    caption: '@quasarframework',
+    caption: '@jeal_jack',
     icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev',
+    link: 'https://twitter.com/jeal_jack',
   },
   {
     title: 'Facebook',
-    caption: '@QuasarFramework',
+    caption: '@JEAL47',
     icon: 'public',
-    link: 'https://facebook.quasar.dev',
+    link: 'https://www.facebook.com/JEAL47/',
   },
   {
     title: 'Quasar Awesome',

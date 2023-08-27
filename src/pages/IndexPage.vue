@@ -3,8 +3,8 @@
     <div class="col q-pt-lg q-px-md">
       <q-input
         v-model="search"
-        @keyup.enter="getWeatherBySearch"
-        placeholder="Tell me where..."
+        @keyup.enter="searchWeather"
+        placeholder="A donde vamos?"
         borderless
         dark
       >
@@ -13,7 +13,7 @@
         </template>
 
         <template v-slot:append>
-          <q-btn round dense flat icon="search" @click="getWeatherBySearch" />
+          <q-btn round dense flat icon="search" @click="searchWeather" />
         </template>
       </q-input>
     </div>
@@ -24,7 +24,7 @@
           {{ weatherData.name }}
         </div>
         <div class="text-h6 text-weight-light">
-          {{ weatherDaily.days[0].conditions }}
+          {{ weatherDaily?.days[0].conditions }}
         </div>
 
         <div class="text-h1 text-weight-thin q-my-lg">
@@ -39,14 +39,28 @@
           alt="weather_icon"
         />
       </div>
+      <div class="daily">
+        <div v-for="hour in weatherDaily?.days[0]?.hours" :key="hour.datetime">
+          <div class="hour">
+            <span class="temp">{{ hour.temp }} &deg;C</span>
+            <span class="time">{{ hour.datetime.replace('00:00', '00') }}</span>
+          </div>
+          <img
+            :src="`https://github.com/visualcrossing/WeatherIcons/blob/main/PNG/1st%20Set%20-%20Color/${hour.icon}.png?raw=true`"
+            alt="weather_icon"
+          />
+        </div>
+      </div>
     </template>
 
     <template v-else>
       <div class="col column text-center text-white">
-        <div class="col text-h2 text-weight-thin">Guess<br />Weather</div>
+        <div class="col text-h2 text-weight-thin">
+          Prueba usando el gps<br />o busca un lugar que te guste...
+        </div>
         <q-btn flat class="col" @click="getLocation">
           <q-icon left size="3em" name="my_location" />
-          <div>Guess where i am...</div>
+          <div>Por donde andas?</div>
         </q-btn>
       </div>
     </template>
@@ -57,7 +71,7 @@
 <script lang="ts">
 import { WeatherData, WeatherHour } from 'components/models';
 import { defineComponent, onBeforeUnmount } from 'vue';
-import { useQuasar } from 'quasar';
+import { useQuasar, date } from 'quasar';
 
 export default defineComponent({
   name: 'IndexPage',
@@ -113,7 +127,7 @@ export default defineComponent({
           position.coords.latitude,
           position.coords.longitude
         );
-        this.getWeatherByHour(
+        this.getHourlyWeatherByCoordinates(
           position.coords.latitude,
           position.coords.longitude
         );
@@ -128,16 +142,21 @@ export default defineComponent({
         })
         .catch((error) => this.hideLoading());
     },
-    getWeatherByHour(lat: number, lon: number) {
+    getHourlyWeatherByCoordinates(lat: number, lon: number) {
+      const timeStamp = Date.now();
+      const formattedDate = date.formatDate(timeStamp, 'YYYY-MM-DD');
       this.$axios(
-        `${this.weatherByHourUrl}/${lat},${lon}/2023-08-27?include=hours&lang=es&key=${this.weatherByHourKey}&unitGroup=metric`
+        `${this.weatherByHourUrl}/${lat},${lon}/${formattedDate}?include=hours&lang=es&key=${this.weatherByHourKey}&unitGroup=metric`
       )
         .then((response) => {
-          console.log(response);
           this.weatherDaily = response.data;
           this.hideLoading();
         })
         .catch((error) => this.hideLoading());
+    },
+    searchWeather() {
+      this.getWeatherBySearch();
+      this.getHourlyWeatherBySearch();
     },
     getWeatherBySearch() {
       this.showLoading();
@@ -146,7 +165,17 @@ export default defineComponent({
       )
         .then((response) => {
           this.weatherData = response.data;
-          this.search = '';
+        })
+        .catch((error) => this.hideLoading());
+    },
+    getHourlyWeatherBySearch() {
+      const timeStamp = Date.now();
+      const formattedDate = date.formatDate(timeStamp, 'YYYY-MM-DD');
+      this.$axios(
+        `${this.weatherByHourUrl}/${this.search}/${formattedDate}?include=hours&lang=es&key=${this.weatherByHourKey}&unitGroup=metric`
+      )
+        .then((response) => {
+          this.weatherDaily = response.data;
           this.hideLoading();
         })
         .catch((error) => this.hideLoading());
@@ -169,4 +198,33 @@ export default defineComponent({
   background: url(/city2.png)
   background-size: contain
   background-position: center bottom
+.daily
+  display: flex
+  flex-direction: row
+  height: 175px
+  width: 100%
+  padding: 10px
+  overflow-x: auto
+  gap: 5px
+
+  ::-webkit-scrollbar
+   width: 100%
+   height: 2px
+   background-color: white
+
+.hour
+  display: flex
+  width: 80px
+  height: 80px
+  border: 2px solid white
+  flex-direction: column
+  text-align: center
+  justify-content: center
+  border-radius: 100% 0% 100% 0% / 70% 100% 70% 0%
+.temp
+  font-size: 20px
+  color: #F2C037
+.time
+  font-size: 15px
+  color: #BAE5FB
 </style>
