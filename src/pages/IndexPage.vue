@@ -39,23 +39,58 @@
           alt="weather_icon"
         />
       </div>
+      <div class="rowIcons">
+        <div class="icon">
+          <img
+            src="icons/wind.png"
+            alt="Velocidad de vientos"
+            title="Velocidad de vientos"
+            width="70"
+          />
+          <span class="complement"
+            >{{ weatherDaily?.days[0]?.windspeed }} Km/h</span
+          >
+        </div>
+        <div class="icon">
+          <img
+            src="icons/rain.png"
+            alt="Probabilidad de Lluvia"
+            title="Probabilidad de Lluvia"
+            width="70"
+          />
+          <span class="complement"
+            >{{ weatherDaily?.days[0]?.precipprob }} %</span
+          >
+        </div>
+        <div class="icon">
+          <img
+            src="icons/uv.png"
+            alt="Porcentaje de UV"
+            title="Porcentaje de UV"
+            width="70"
+          />
+          <span class="complement">{{ weatherDaily?.days[0]?.uvindex }} %</span>
+        </div>
+      </div>
       <div class="daily">
         <div v-for="hour in weatherDaily?.days[0]?.hours" :key="hour.datetime">
           <div class="hour">
             <span class="temp">{{ hour.temp }} &deg;C</span>
             <span class="time">{{ hour.datetime.replace('00:00', '00') }}</span>
           </div>
-          <img
-            :src="`https://github.com/visualcrossing/WeatherIcons/blob/main/PNG/1st%20Set%20-%20Color/${hour.icon}.png?raw=true`"
-            alt="weather_icon"
-          />
+          <div class="weatherIcon">
+            <img
+              :src="`https://github.com/visualcrossing/WeatherIcons/blob/main/PNG/1st%20Set%20-%20Color/${hour.icon}.png?raw=true`"
+              alt="weather_icon"
+            />
+          </div>
         </div>
       </div>
     </template>
 
     <template v-else>
       <div class="col column text-center text-white">
-        <div class="col text-h2 text-weight-thin">
+        <div class="col text-h2 text-weight-thin title">
           Prueba usando el gps<br />o busca un lugar que te guste...
         </div>
         <q-btn flat class="col" @click="getLocation">
@@ -191,6 +226,8 @@ export default defineComponent({
     background: linear-gradient(to bottom, #232526, #414345)
   &.bg-day
     background: linear-gradient(to bottom, #00c6ff, #0072ff)
+.title
+  font-size: clamp(2rem, 2.5vw, 4rem)
 .degree
   top: -44px
 .city
@@ -206,6 +243,7 @@ export default defineComponent({
   padding: 10px
   overflow-x: auto
   gap: 5px
+  justify-content: center
 
   ::-webkit-scrollbar
    width: 100%
@@ -220,11 +258,28 @@ export default defineComponent({
   flex-direction: column
   text-align: center
   justify-content: center
-  border-radius: 100% 0% 100% 0% / 70% 100% 70% 0%
+  border-radius: 100%
+.complement
+  font-size: 20px
+  color: #F2C037
+  width: 100px
 .temp
   font-size: 20px
   color: #F2C037
 .time
   font-size: 15px
   color: #BAE5FB
+.rowIcons
+  display: flex
+  justify-content: space-evenly
+.icon
+  display: flex
+  flex-direction: column
+  justify-content: center
+  align-items: center
+  width: 100px
+  text-align: center
+.weatherIcon
+  display: flex
+  justify-content: center
 </style>
