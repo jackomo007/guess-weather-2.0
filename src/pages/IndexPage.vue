@@ -4,12 +4,12 @@
       <q-input
         v-model="search"
         @keyup.enter="searchWeather"
-        placeholder="A donde vamos?"
+        placeholder="Alguna ciudad en mente?"
         borderless
         dark
       >
         <template v-slot:before>
-          <q-icon @click="getLocation" name="my_location" />
+          <q-icon @click="getLocation" name="location_city" />
         </template>
 
         <template v-slot:append>
@@ -27,7 +27,7 @@
           {{ weatherDaily?.days[0].conditions }}
         </div>
 
-        <div class="text-h1 text-weight-thin q-my-lg">
+        <div class="text-h1 text-weight-thin">
           <span>{{ Math.round(weatherData.main.temp) }}</span>
           <span class="text-h4 relative-position degree">&deg;C</span>
         </div>
@@ -74,7 +74,9 @@
       </div>
       <div class="daily">
         <div v-for="hour in weatherDaily?.days[0]?.hours" :key="hour.datetime">
-          <div class="hour">
+          <div
+            :class="identifyActualHour(hour.datetime) ? 'actualHour' : 'hour'"
+          >
             <span class="temp">{{ hour.temp }} &deg;C</span>
             <span class="time">{{ hour.datetime.replace('00:00', '00') }}</span>
           </div>
@@ -89,15 +91,32 @@
     </template>
 
     <template v-else>
-      <div class="col column text-center text-white">
-        <div class="col text-h2 text-weight-thin title">
-          Prueba usando el gps<br />o busca un lugar que te guste...
+      <template v-if="errorInSearch">
+        <div class="containerLost">
+          <div class="col text-h4 text-weight-thin text-center text-white">
+            Localización no encontrada. Intente nuevamente...
+          </div>
+          <img
+            src="icons/locationNotFound.gif"
+            alt="404"
+            title="404"
+            width="150"
+            class="lost"
+          />
         </div>
-        <q-btn flat class="col" @click="getLocation">
-          <q-icon left size="3em" name="my_location" />
-          <div>Por donde andas?</div>
-        </q-btn>
-      </div>
+      </template>
+      <template v-else>
+        <div class="col column text-center text-white">
+          <div class="col text-h2 text-weight-thin title">
+            Ingresa el nombre de una ciudad en la barra de búsqueda (arriba), o
+            prueba usando el gps (abajo)
+          </div>
+          <q-btn flat class="col" @click="getLocation">
+            <q-icon left size="3em" name="my_location" />
+            <div>Usar mi localización actual</div>
+          </q-btn>
+        </div>
+      </template>
     </template>
     <div class="col city"></div>
   </q-page>
@@ -140,6 +159,7 @@ export default defineComponent({
       weatherByHourKey: 'LA5WY8QYQ5YC9UX79YBX6EKND',
       weatherByHourUrl:
         'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline',
+      errorInSearch: false,
     };
   },
   computed: {
@@ -175,7 +195,7 @@ export default defineComponent({
         .then((response) => {
           this.weatherData = response.data;
         })
-        .catch((error) => this.hideLoading());
+        .catch(() => this.hideLoading());
     },
     getHourlyWeatherByCoordinates(lat: number, lon: number) {
       const timeStamp = Date.now();
@@ -187,11 +207,17 @@ export default defineComponent({
           this.weatherDaily = response.data;
           this.hideLoading();
         })
-        .catch((error) => this.hideLoading());
+        .catch(() => this.hideLoading());
     },
     searchWeather() {
       this.getWeatherBySearch();
       this.getHourlyWeatherBySearch();
+    },
+    showError() {
+      this.errorInSearch = true;
+      setTimeout(() => {
+        this.errorInSearch = false;
+      }, 3500);
     },
     getWeatherBySearch() {
       this.showLoading();
@@ -201,7 +227,10 @@ export default defineComponent({
         .then((response) => {
           this.weatherData = response.data;
         })
-        .catch((error) => this.hideLoading());
+        .catch(() => {
+          this.hideLoading();
+          this.showError();
+        });
     },
     getHourlyWeatherBySearch() {
       const timeStamp = Date.now();
@@ -213,7 +242,49 @@ export default defineComponent({
           this.weatherDaily = response.data;
           this.hideLoading();
         })
-        .catch((error) => this.hideLoading());
+        .catch(() => {
+          this.hideLoading();
+          this.showError();
+        });
+    },
+    identifyActualHour(actualHour: string) {
+      const horaActual = new Date();
+      const hour = +actualHour.split(':')[0];
+
+      if (hour === 23) {
+        setTimeout(() => {
+          this.setScroll();
+        }, 2000);
+      }
+
+      return horaActual.getHours() === hour;
+    },
+    getScrollByHour() {
+      const horaActual = new Date();
+      const hour: number = horaActual.getHours();
+
+      const scrollRanges = [
+        { start: 0, end: 3, scrollValue: 0 },
+        { start: 4, end: 7, scrollValue: 300 },
+        { start: 8, end: 10, scrollValue: 600 },
+        { start: 11, end: 14, scrollValue: 900 },
+        { start: 15, end: 17, scrollValue: 1200 },
+        { start: 18, end: 20, scrollValue: 1500 },
+      ];
+
+      for (const range of scrollRanges) {
+        if (hour >= range.start && hour <= range.end) {
+          return range.scrollValue;
+        }
+      }
+
+      return 1800;
+    },
+    setScroll() {
+      const el = document.getElementsByClassName('daily');
+      if (el.length > 0) {
+        el[0].scrollLeft = this.getScrollByHour();
+      }
     },
   },
 });
@@ -227,7 +298,7 @@ export default defineComponent({
   &.bg-day
     background: linear-gradient(to bottom, #00c6ff, #0072ff)
 .title
-  font-size: clamp(2rem, 2.5vw, 4rem)
+  font-size: clamp(1rem, 2.5vw, 4rem)
 .degree
   top: -44px
 .city
@@ -243,7 +314,7 @@ export default defineComponent({
   padding: 10px
   overflow-x: auto
   gap: 5px
-  justify-content: center
+  margin-top: 20px
 
   ::-webkit-scrollbar
    width: 100%
@@ -255,6 +326,15 @@ export default defineComponent({
   width: 80px
   height: 80px
   border: 2px solid white
+  flex-direction: column
+  text-align: center
+  justify-content: center
+  border-radius: 100%
+.actualHour
+  display: flex
+  width: 80px
+  height: 80px
+  border: 3.5px solid black
   flex-direction: column
   text-align: center
   justify-content: center
@@ -282,4 +362,13 @@ export default defineComponent({
 .weatherIcon
   display: flex
   justify-content: center
+.containerLost
+  width: 100%
+  height: 50vh
+  display: flex
+  flex-direction: column
+  justify-content: center
+  align-items: center
+.lost
+  border-radius: 50%
 </style>

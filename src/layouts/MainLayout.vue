@@ -11,7 +11,9 @@
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title> Guess Weather </q-toolbar-title>
+        <q-toolbar-title>
+          Guess Weather <q-icon name="cloud_circle" />
+        </q-toolbar-title>
       </q-toolbar>
     </q-header>
 
@@ -42,7 +44,7 @@ const linksList = [
     title: 'System Engineer',
     caption: '2021',
     icon: 'school',
-    link: '',
+    link: 'https://www.linkedin.com/in/angel-developer/',
   },
   {
     title: 'Github',
